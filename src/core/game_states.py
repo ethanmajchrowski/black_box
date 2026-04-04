@@ -8,32 +8,38 @@ from typing import Literal
 from random import uniform
 
 class Message:
-    def __init__(self, str: str, source: Literal["AI", "Player", "Hint"]) -> None:
-        self.str = str
+    def __init__(self, message: str, source: Literal["AI", "Player", "Hint"], already_revealed: int = 0) -> None:
+        self.str = message
         self.source: Literal["AI", "Player", "Hint"] = source
-        self.start_time = 0.05 * len(str)
-        self.current_time = self.start_time
-        self.last_visible = 0
+        
+        self.total_time = 0.03 * len(message)
+        
+        self.current_time = self.total_time * (1 - (already_revealed / len(message)))
+        
+        self.last_visible = already_revealed
 
 class PlayingState(engine.GameState):
     def __init__(self) -> None:
         super().__init__()
         self.ai_token_queue = None
         self.current_ai_line = ""
+        self.ai_displayed_line = ""  # what has actually been drawn so far
+        self.ai_char_timer = 0.05     # accumulates time for letter reveal
+        self.ai_char_delay = 0.05    # time between letters revealed
         
         self.conversation: list[Message] = []
-        self.add_message("Welcome to the terminal!", "AI")
-        self.add_message("This is the same time as the first message. :(", "Hint")
-        self.add_message("This is the player talking!", "Player")
+        self.add_message("hellow\nnewline", "Player")
+        # self.add_message("* "*40, "AI", 76)
+
         self.user_input = ""
         
         engine.event_bus.connect("ai_start", lambda queue: setattr(self, "ai_token_queue", queue))
     
-    def add_message(self, str: str, source: Literal["AI", "Player", "Hint"]):
+    def add_message(self, str: str, source: Literal["AI", "Player", "Hint"], already_revealed: int = 0):
         if not str:
             logger.warning("Empty string tried to add to message log")
             return
-        self.conversation.append(Message(str, source))
+        self.conversation.append(Message(str, source, already_revealed))
     
     def enter(self):
         pass
@@ -49,14 +55,14 @@ class PlayingState(engine.GameState):
             if line.source == "Player":
                 visible_chars = len(line.str)
                 color = (100, 100, 255)
-            else:
-                if line.source == "Hint":
-                    color = (240, 208, 103)
-                else:
-                    color = (255, 255, 255)
+            else: # hint message
+                if line.source == "AI": color = (255, 255, 255)
+                else: color = (240, 208, 103)
                 # cap chars in line based on line time value
-                progress = 1 - line.current_time / line.start_time
+                progress = 1 - line.current_time / line.total_time
                 visible_chars = int(len(line.str) * progress)
+                
+                # sfx
                 if visible_chars > line.last_visible:
                     line.last_visible = visible_chars
                     engine.sound.sounds["typing"].set_volume(uniform(0.1, 0.15))
@@ -64,6 +70,10 @@ class PlayingState(engine.GameState):
 
             bottom = engine.font.draw_wrapped_text(surf, f"> {line.str[:visible_chars]}", "inter", color, text_rect, 18)
             text_rect.top = bottom
+        
+        # AI in progress
+        if self.current_ai_line:
+            bottom = engine.font.draw_wrapped_text(surf, f"> {self.ai_displayed_line}", "inter", (255, 255, 255), text_rect, 18)           
         
         # draw type box
         font = engine.font.get_font("inter")
@@ -89,15 +99,27 @@ class PlayingState(engine.GameState):
             if line.current_time > 0: 
                 line.current_time -= dt
         
+        if self.current_ai_line:
+            self.ai_char_timer -= dt
+            if self.ai_char_timer < 0 and len(self.ai_displayed_line) < len(self.current_ai_line):
+                next_char = self.current_ai_line[len(self.ai_displayed_line)]
+                self.ai_displayed_line += next_char
+                self.ai_char_timer = self.ai_char_delay
+
+                # play typing sound for AI characters
+                engine.sound.sounds["typing"].set_volume(uniform(0.1, 0.15))
+                engine.sound.sounds["typing"].play()
+                self.ai_char_timer = self.ai_char_delay
+        
         # update AI content
         if not self.ai_token_queue: return
         while not self.ai_token_queue.empty():
             token = self.ai_token_queue.get()
             if token is None:
-                print("ai DONE")
-                self.add_message(self.current_ai_line, source="AI")
                 engine.event_bus.emit("ai_done", response=self.current_ai_line)
+                self.add_message(self.current_ai_line, "AI", len(self.ai_displayed_line))
                 self.current_ai_line = ""
+                self.ai_displayed_line = ""
             else:
                 self.current_ai_line += token
         

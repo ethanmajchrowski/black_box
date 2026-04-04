@@ -19,28 +19,35 @@ class _FontManager:
             logger.fatal(f"Font not found: {font_name}. Failing to render multi line text.")
             return 0
         
-        # Split text into words
-        words = text.split()
-        lines = []
-        current_line = []
-
-        for word in words:
-            # Check width of current line + new word
-            test_line = ' '.join(current_line + [word])
-            text_rect = font.get_rect(test_line, size=size)
-            
-            if text_rect.width <= rect.width:
-                current_line.append(word)
-            else:
-                lines.append(' '.join(current_line))
-                current_line = [word]
-        
-        lines.append(' '.join(current_line)) # Add the last line
-
-        # Render each line
+        # Split text into paragraphs by newline
+        paragraphs = text.split('\n')
         y_offset = rect.top
-        for line in lines:
-            if line: # Avoid rendering empty lines
-                font.render_to(surface, (rect.left, y_offset), line, color, size=size)
-                y_offset += font.get_sized_height(size) # Move down for the next line
+
+        for paragraph in paragraphs:
+            words = paragraph.split()
+            current_line = []
+
+            for word in words:
+                test_line = ' '.join(current_line + [word])
+                text_rect = font.get_rect(test_line, size=size)
+
+                if text_rect.width <= rect.width:
+                    current_line.append(word)
+                else:
+                    # Render the current line
+                    if current_line:
+                        line_text = ' '.join(current_line)
+                        font.render_to(surface, (rect.left, y_offset), line_text, color, size=size)
+                        y_offset += font.get_sized_height(size)
+                    current_line = [word]
+
+            # Render any leftover words in the paragraph
+            if current_line:
+                line_text = ' '.join(current_line)
+                font.render_to(surface, (rect.left, y_offset), line_text, color, size=size)
+                y_offset += font.get_sized_height(size)
+
+            # Add extra spacing for the newline itself
+            # y_offset += font.get_sized_height(size)  # optional: can be 0 or half-size if you want tighter spacing
+
         return y_offset
