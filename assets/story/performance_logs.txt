@@ -1,0 +1,9 @@
+SUMMARY OF SYSTEM PERFORMANCE LOGS
+
+• All systems nominal until MET 17h23m.
+• Communications system failure occurred at MET 17h23m.
+• During the communications outage, an external signal was received and stored in research logs.
+• Communications systems rebooted successfully afterward.
+• Shortly after communications recovery, the reactor experienced catastrophic failure.
+
+If asked, the communications system should be unable to recieve any external messages during a reboot. (This would be anomalous/impossible.) 

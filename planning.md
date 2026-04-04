@@ -27,10 +27,9 @@ internal_res = (640, 480)
 screen = pygame.display.set_mode(internal_res, pygame.SCALED | pygame.FULLSCREEN)
 ```
 
-
 **Todo**
 - [x] Setup project (bring in engine)
-- [x] Engine updates (add game state register so that engine handles all state switching) ~*note: not sure if this is actually needed, skipping for now*~
+- [x] Engine updates (add game state register so that engine handles all state switching)
 - [x] Setup basic state switching (able to get to the pause menu from in game, able to exit to main menu from pause menu, able to get to settings menu from main menu, etc.)
 - [x] Implement nice fonts with pygame.freetype
 - [ ] Basic user text input and message history display
