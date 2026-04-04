@@ -10,8 +10,8 @@ class Game:
     def __init__(self, display_surface: pg.Surface) -> None:
         engine.state_manager.register_state(PlayingState(), "playing", True)
         engine.state_manager.register_state(SettingsMenuState(), "settings")
-        engine.state_manager.register_state(MainMenuState(), "settings")
-        engine.state_manager.register_state(PauseState(), "settings")
+        engine.state_manager.register_state(MainMenuState(), "main_menu")
+        engine.state_manager.register_state(PauseState(), "pause")
         engine.setup(c)
         # variables
         self.running = True
@@ -22,6 +22,9 @@ class Game:
         
         # hookup input events
         engine.event_bus.connect("quit", lambda: setattr(self, "running", False))
+        
+        # load things
+        engine.font.load_font("assets/font/inter24.ttf", "inter")
         
         # fps time for debug
         self.fps_update_time = 0.0

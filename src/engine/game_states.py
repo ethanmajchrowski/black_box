@@ -43,7 +43,12 @@ class _StateManager:
 		if initial_state:
 			self.initial_state = state
     
-	def switch_states(self, new_state: "GameState") -> None:
+	def change_state(self, new_state_name: str) -> None:
+		new_state = self.states.get(new_state_name)
+		if not new_state:
+			logger.fatal(f"Tried to switch to non-registered state '{new_state_name}'")
+			return
+     
 		if self.current_state:
 			new_state.prev_state = self.current_state
 			self.current_state.exit()

@@ -1,3 +1,5 @@
+import pygame as pg
+
 DISPLAY_WIDTH = 1280
 DISPLAY_HEIGHT = 720
 
@@ -7,6 +9,30 @@ DISPLAY_HEIGHT_CENTER = DISPLAY_HEIGHT // 2
 DISPLAY_CENTER = (DISPLAY_WIDTH_CENTER, DISPLAY_HEIGHT_CENTER)
 
 DEBUG_MODE = True
+PRINT_EVENT_BUS = True
 
 WINDOW_TITLE = "Pygame-CE Engine"
 ROOT_ASSET_PATH = "assets"
+
+class CONTROLS:
+    # [[main_controls], [key mods]]
+    PAUSE_GAME = [pg.K_ESCAPE, pg.KMOD_NONE]
+    SEND_MESSAGE = [pg.K_RETURN, pg.KMOD_NONE]
+    
+    # motion
+    MOVE_CURSOR_LEFT = [pg.K_LEFT, pg.KMOD_NONE]
+    MOVE_CURSOR_RIGHT = [pg.K_RIGHT, pg.KMOD_NONE]
+    MOVE_WORD_LEFT = [pg.K_LEFT, pg.KMOD_CTRL]
+    MOVE_WORD_RIGHT = [pg.K_RIGHT, pg.KMOD_CTRL]
+    
+    # deletion
+    DELETE_CHAR_LEFT = [pg.K_BACKSPACE, pg.KMOD_NONE]
+    DELETE_CHAR_RIGHT = [pg.K_DELETE, pg.KMOD_NONE]
+    DEL_WORD_LEFT = [pg.K_BACKSPACE, pg.KMOD_CTRL]
+    DEL_WORD_RIGHT = [pg.K_DELETE, pg.KMOD_CTRL]
+    
+    # selection
+    SELECT_CHAR_LEFT = [pg.K_LEFT, pg.K_LSHIFT]
+    SELECT_CHAR_RIGHT = [pg.K_RIGHT, pg.K_LSHIFT]
+    SELECT_WORD_LEFT = [pg.K_LEFT, pg.KMOD_CTRL | pg.KMOD_SHIFT]
+    SELECT_WORD_RIGHT = [pg.K_RIGHT, pg.KMOD_CTRL | pg.KMOD_SHIFT]

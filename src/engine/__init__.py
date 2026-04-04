@@ -9,6 +9,7 @@ from .input import _InputManager
 from .animation import _AnimationManager
 from .game_map_ import _MapManager
 from .physics_engine import _PhysicsManager
+from .fonts import _FontManager
 
 event_bus = _EventBus()
 
@@ -18,6 +19,7 @@ time_manager = _TimeManager()
 input_manager = _InputManager()
 animations = _AnimationManager()
 physics = _PhysicsManager()
+font = _FontManager()
 camera = Camera()
 map = _MapManager()
 

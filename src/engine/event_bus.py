@@ -1,4 +1,5 @@
 from logger import logger
+import core.configuration as c
 
 class _EventBus:
     def __init__(self) -> None:
@@ -11,6 +12,9 @@ class _EventBus:
             event (str): Event to emit
         Any arguments after event are passed as args and kwargs.
         """
+        if c.PRINT_EVENT_BUS:
+            logger.info(f"[EventBus] Emitting {event} with args: {args}, kwargs: {kwargs}")
+        
         if event in self._listeners:
             for func in self._listeners[event]:
                 try:

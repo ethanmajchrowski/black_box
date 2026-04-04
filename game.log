@@ -1,3 +1,19 @@
-2026-04-03 21:21:04,206 [INFO] Pygame initialized
-2026-04-03 21:21:04,207 [INFO] Game object created
-2026-04-03 21:21:04,207 [INFO] Starting game
+2026-04-03 22:16:17,605 [INFO] Pygame initialized
+2026-04-03 22:16:17,606 [INFO] Game object created
+2026-04-03 22:16:17,607 [INFO] Starting game
+2026-04-03 22:16:18,414 [INFO] [EventBus] Emitting switch_states with args: (<core.UI_states.PauseState object at 0x0000022110F4F380>,), kwargs: {}
+2026-04-03 22:16:19,528 [INFO] [EventBus] Emitting switch_states with args: (<core.UI_states.MainMenuState object at 0x0000022110F4F0E0>,), kwargs: {}
+2026-04-03 22:16:20,344 [INFO] [EventBus] Emitting switch_states with args: (<core.game_states.PlayingState object at 0x0000022110F4ECF0>,), kwargs: {}
+2026-04-03 22:16:21,261 [INFO] [EventBus] Emitting switch_states with args: (<core.UI_states.PauseState object at 0x0000022110F4F380>,), kwargs: {}
+2026-04-03 22:16:21,820 [INFO] [EventBus] Emitting switch_states with args: (<core.game_states.PlayingState object at 0x0000022110F4ECF0>,), kwargs: {}
+2026-04-03 22:16:22,209 [INFO] [EventBus] Emitting switch_states with args: (<core.UI_states.PauseState object at 0x0000022110F4F380>,), kwargs: {}
+2026-04-03 22:16:22,360 [INFO] [EventBus] Emitting switch_states with args: (<core.game_states.PlayingState object at 0x0000022110F4ECF0>,), kwargs: {}
+2026-04-03 22:16:22,733 [INFO] [EventBus] Emitting switch_states with args: (<core.UI_states.PauseState object at 0x0000022110F4F380>,), kwargs: {}
+2026-04-03 22:16:23,045 [INFO] [EventBus] Emitting switch_states with args: (<core.UI_states.MainMenuState object at 0x0000022110F4F0E0>,), kwargs: {}
+2026-04-03 22:16:23,365 [INFO] [EventBus] Emitting switch_states with args: (<core.game_states.PlayingState object at 0x0000022110F4ECF0>,), kwargs: {}
+2026-04-03 22:16:23,809 [INFO] [EventBus] Emitting switch_states with args: (<core.UI_states.PauseState object at 0x0000022110F4F380>,), kwargs: {}
+2026-04-03 22:16:24,642 [INFO] [EventBus] Emitting switch_states with args: (<core.game_states.PlayingState object at 0x0000022110F4ECF0>,), kwargs: {}
+2026-04-03 22:16:25,288 [INFO] [EventBus] Emitting switch_states with args: (<core.UI_states.PauseState object at 0x0000022110F4F380>,), kwargs: {}
+2026-04-03 22:16:25,573 [INFO] [EventBus] Emitting switch_states with args: (<core.UI_states.MainMenuState object at 0x0000022110F4F0E0>,), kwargs: {}
+2026-04-03 22:16:26,098 [INFO] [EventBus] Emitting switch_states with args: (<core.game_states.PlayingState object at 0x0000022110F4ECF0>,), kwargs: {}
+2026-04-03 22:16:29,473 [INFO] [EventBus] Emitting quit with args: (), kwargs: {}
