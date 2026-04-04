@@ -39,4 +39,4 @@ screen = pygame.display.set_mode(internal_res, pygame.SCALED | pygame.FULLSCREEN
   - [ ] Scrollable message history
 - [x] AI connection (send and recieve messages from LLM)
   - [ ] Extend LLM functionality and be able to call things from inside of game logic
-  - [ ] Rough out LLM prompting strategy
+  - [x] Rough out LLM prompting strategy

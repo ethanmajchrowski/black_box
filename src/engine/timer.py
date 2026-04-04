@@ -1,5 +1,6 @@
 from logger import logger
 from typing import Callable, Any
+import pygame as pg
 
 class _TimerContainer:
     """Container object for timing events.
@@ -74,8 +75,10 @@ class _Tween:
 class _TimeManager:
     def __init__(self) -> None:
         self._timers: list[_TimerContainer | _Tween] = []
+        self.global_time = 0.0
     
-    def update(self, dt: float) -> None:        
+    def update(self, dt: float) -> None:     
+        self.global_time += dt
         # Update everything
         for i in range(len(self._timers)-1, -1, -1):
             obj = self._timers[i]

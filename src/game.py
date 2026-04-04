@@ -4,6 +4,7 @@ import core.configuration as c
 import engine
 from core.game_states import PlayingState
 from core.UI_states import SettingsMenuState, MainMenuState, PauseState
+from core.llm import ai_manager
 from logger import logger
 
 class Game:
@@ -24,7 +25,9 @@ class Game:
         engine.event_bus.connect("quit", lambda: setattr(self, "running", False))
         
         # load things
+        engine.sound.register_sound("assets/sound/type.wav", "typing")
         engine.font.load_font("assets/font/inter24.ttf", "inter")
+        engine.font.load_font("assets/font/space_mono.ttf", "mono")
         
         # fps time for debug
         self.fps_update_time = 0.0

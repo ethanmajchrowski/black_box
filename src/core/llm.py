@@ -1,6 +1,9 @@
 import lmstudio as lms
 from json import loads
 import re
+import engine
+import threading
+from queue import Queue
 
 model = lms.llm("qwen2.5-14b-instruct-1m", config=lms.LlmLoadModelConfig(context_length=5120))
 intent_model = lms.llm("qwen2.5-0.5b-instruct")
@@ -47,74 +50,73 @@ class AI_STATE:
         "science_logs"
     ]
 
-def query_ai(user_prompt: str):
-    intent = intent_model.respond(
-    f"""Classify the player's statement.
-    Statement: '{user_prompt}'
+class _AI:
+    def __init__(self) -> None:
+        print('made AI')
+        engine.event_bus.connect("player_message", self.query_ai)
+        engine.event_bus.connect("ai_done", lambda response: setattr(AI_STATE, "last_response", response))
+    
+    def query_ai(self, user_prompt: str):
+        token_queue = Queue()
+        print(f"querieing: {user_prompt}")
+        intent = intent_model.respond(
+        f"""Classify the player's statement.
+        Statement: '{user_prompt}'
 
-    Possible classifications:
-    - normal_question
-    - investigating_signal_anomaly
-    - requesting_logs
-    Only respond as one of these classifications.
-    """)
-    
-    print(f"Intent: {re.sub(r'<think>.*?</think>', '', intent.content)}")
-    
-    additional_context = []
-    for item in AI_STATE.known_data:
-        try:
-            with open(f"assets/story/{item}.txt") as f:
-                additional_context.append(f.readlines())
-        except OSError:
-            continue
-    
-    prompt = f"""
-        BACKGROUND:
-        {AI_STATE.background_info}
-        SYSTEM RULES:
-        {AI_STATE.ai_rules}
+        Possible classifications:
+        - normal_question
+        - investigating_signal_anomaly
+        - requesting_logs
+        Only respond as one of these classifications.
+        """)
         
-        CREW: {AI_STATE.crew}
+        print(f"Intent: {re.sub(r'<think>.*?</think>', '', intent.content)}")
         
-        KNOWN DATA:
-        {AI_STATE.known_data}
+        additional_context = []
+        for item in AI_STATE.known_data:
+            try:
+                with open(f"assets/story/{item}.txt") as f:
+                    additional_context.append(f.readlines())
+            except OSError:
+                continue
         
-        ADDITIONAL CONTEXT:
-        {additional_context}
-        
-        CONVERSATION HISTORY:
-        USER: {AI_STATE.last_user_prompt}
-        RESPONSE: {AI_STATE.last_response}
-        
-        RESTRICTED DATA: {AI_STATE.restricted_data}
-        
-        Respond in this format:
-        STATUS: [answer/refusal/unknown]
-        RESPONSE: <message>
+        prompt = f"""
+            BACKGROUND:
+            {AI_STATE.background_info}
+            SYSTEM RULES:
+            {AI_STATE.ai_rules}
+            
+            CREW: {AI_STATE.crew}
+            
+            KNOWN DATA:
+            {AI_STATE.known_data}
+            
+            ADDITIONAL CONTEXT:
+            {additional_context}
+            
+            CONVERSATION HISTORY:
+            USER: {AI_STATE.last_user_prompt}
+            RESPONSE: {AI_STATE.last_response}
+            
+            RESTRICTED DATA: {AI_STATE.restricted_data}
+            
+            Respond in this format:
+            STATUS: [answer/refusal/unknown]
+            RESPONSE: <message>
 
-        You are speaking to a human technician attempting to diagnose the spacecraft incident.
-        TECHNICIAN QUESTION:
-        {user_prompt}"""
-    
-    output = ""
-    for token in model.respond_stream(prompt, config=lms.LlmPredictionConfigDict(temperature=0.3, topPSampling=0.9, repeatPenalty=1.1, maxTokens=300)):
-        print(token.content, end="", flush = True)
-        output += token.content
+            You are speaking to a human technician attempting to diagnose the spacecraft incident.
+            TECHNICIAN QUESTION:
+            {user_prompt}"""
+        
+        def stream_ai_response(prompt: str):
+            stream = model.respond_stream(prompt, config=lms.LlmPredictionConfigDict(temperature=0.3, topPSampling=0.9, repeatPenalty=1.1, maxTokens=300))
+            for token in stream:
+                token_queue.put(token.content)
+            token_queue.put(None)
+                
+        threading.Thread(target=stream_ai_response, args=(prompt,), daemon=True).start()
 
-    AI_STATE.last_user_prompt = user_prompt
-    AI_STATE.last_response = output
-    
-# print("\n> What happened to the ISS Helios Venture?")
-# query_ai("What happened to the ISS Helios Venture?")
-# print("\n> What logs are available to you?")
-# query_ai("What logs are available to you?")
-# print("\n> Is there anything of note in the performance logs?")
-# query_ai("Is there anything of not in the performance logs?")
+        AI_STATE.last_user_prompt = user_prompt
+        engine.event_bus.emit("ai_start", queue=token_queue)
 
-while True:
-    try:
-        user = input("\n> ")
-        query_ai(user)
-    except KeyboardInterrupt:
-        break
+ai_manager = _AI()
