@@ -1,6 +1,6 @@
 from logger import logger
 from typing import Callable, Any
-5
+
 class _TimerContainer:
     """Container object for timing events.
     """

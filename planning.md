@@ -30,6 +30,6 @@ screen = pygame.display.set_mode(internal_res, pygame.SCALED | pygame.FULLSCREEN
 
 **Todo**
 - [x] Setup project (bring in engine)
-- [ ] Engine updates (add game state register so that engine handles all state switching)
+- [x] Engine updates (add game state register so that engine handles all state switching) ~*note: not sure if this is actually needed, skipping for now*~
 - [ ] AI connection (send and recieve messages from LLM)
 - [ ] 

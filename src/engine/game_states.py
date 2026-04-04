@@ -29,8 +29,19 @@ class GameState:
 
 class _StateManager:
 	def __init__(self, engine_event_bus: "_EventBus") -> None:
+		self.states: dict[str, GameState] = {}
 		self.current_state: GameState = GameState()
 		self.event_bus = engine_event_bus
+		self.initial_state: GameState | None = None
+	
+	def setup(self):
+		if self.initial_state:
+			self.current_state = self.initial_state	
+    
+	def register_state(self, state: "GameState", state_name: str, initial_state: bool = False):
+		self.states[state_name] = state
+		if initial_state:
+			self.initial_state = state
     
 	def switch_states(self, new_state: "GameState") -> None:
 		if self.current_state:

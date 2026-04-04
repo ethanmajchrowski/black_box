@@ -3,10 +3,15 @@ import pygame as pg
 import core.configuration as c
 import engine
 from core.game_states import PlayingState
+from core.UI_states import SettingsMenuState, MainMenuState, PauseState
 from logger import logger
 
 class Game:
     def __init__(self, display_surface: pg.Surface) -> None:
+        engine.state_manager.register_state(PlayingState(), "playing", True)
+        engine.state_manager.register_state(SettingsMenuState(), "settings")
+        engine.state_manager.register_state(MainMenuState(), "settings")
+        engine.state_manager.register_state(PauseState(), "settings")
         engine.setup(c)
         # variables
         self.running = True
@@ -14,7 +19,7 @@ class Game:
         # pygame stuff
         self.display_surface = display_surface
         self.clock = pg.time.Clock()
-                
+        
         # hookup input events
         engine.event_bus.connect("quit", lambda: setattr(self, "running", False))
         
@@ -22,8 +27,6 @@ class Game:
         self.fps_update_time = 0.0
         self.game_time = 0.0
         self.fps_history = []
-                
-        engine.state_manager.switch_states(PlayingState())
 
     def run(self):
         while self.running:

@@ -11,3 +11,7 @@ class MainMenuState(engine.GameState):
 class SettingsMenuState(engine.GameState):
     def __init__(self):
         super().__init__()
+
+class PauseState(engine.GameState):
+    def __init__(self):
+        super().__init__()
