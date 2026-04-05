@@ -157,6 +157,8 @@ class ShipAI:
 
         BACKGROUND:
         The Helios Venture is a derelict ship recovered near neutron star RX J1856.5-3754. All crew are deceased due to radiation. You are speaking to a recovery technician.
+        The ship ISS Helios Venture was sent to the Neutron Star RX J1856.5-3754 to conduct research on the star. 
+        It jumped into the system on 2118 1/12 at 6:06 GST and lowered it's periapsis to within 250,000km of the star to begin initial measurements.
 
         UNLOCKED LOG DATA (Use these for specific answers):
         {available_info}
