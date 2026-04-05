@@ -3,7 +3,7 @@ import pygame as pg
 import core.configuration as c
 import engine
 from logger import logger
-from math import sin
+from math import sin, floor
 from typing import Literal, Callable
 from random import uniform
 
@@ -79,9 +79,11 @@ class PlayingState(engine.GameState):
             self.add_message("We are here to determine the root cause of the failure of the ISS Helios Venture mission.", "Fake_AI", start_pause_time=1.5)
             self.add_message("Very good. We should be all right to get started, then.", "Hint", start_pause_time=1.0)
             self.add_message("""Before you begin, we've recieved some diagnostics beforehand that the AI is heavily damaged. It's memory banks are faulty, so it won't remember any past messages you send it. At the same time, it's been placed in a strong failsafe mode. That means it won't reveal much information without direct questioning. Keep that in mind during your investigation.""", "Hint", start_pause_time=0.5)
-            self.add_message("Remember: you can type your prompts to the ship AI and press enter to send them in. It's all yours.", "Hint", callback=lambda: setattr(self, "allow_player_typing", True), start_pause_time=2.5)
+            self.add_message("Remember: you can type your prompts to the ship AI and press enter to send them in.", "Hint", start_pause_time=2.5)
+            self.add_message("Looks like there's some logs that survived. Maybe check those out first? It's all yours.", "Hint", callback=lambda: setattr(self, "allow_player_typing", True), start_pause_time=0.5)
             
             self.first_enter = False
+
     def create_scanlines(self, width, height, alpha=30):
         # Create a surface with per-pixel alpha
         scanline_surf = pg.Surface((width, height), pg.SRCALPHA)
@@ -157,7 +159,8 @@ class PlayingState(engine.GameState):
             cursor_rect.centery = align_rect.centery
             pg.draw.rect(surf, color, cursor_rect)
         
-        surf.blit(self.create_scanlines(c.DISPLAY_WIDTH, c.DISPLAY_HEIGHT - 40), (0, 0))
+        scan_offset = engine.time_manager.global_time - floor(engine.time_manager.global_time)
+        surf.blit(self.create_scanlines(c.DISPLAY_WIDTH, c.DISPLAY_HEIGHT - 40), (0, int(scan_offset * 10)))
     
     def update(self, dt: float):
         if self.conversation and len(self.conversation) > self.current_message:
