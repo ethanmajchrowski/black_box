@@ -40,6 +40,10 @@ class PlayingState(engine.GameState):
         # self.add_message("\nhi"*50, "Hint")
         
         engine.event_bus.connect("ai_start", lambda queue: setattr(self, "ai_token_queue", queue))
+        
+        engine.event_bus.connect("unlock_science_logs", 
+                                 lambda: self.add_message("Our team just noticed that a new block of memory opened up in the connection. Try asking about any 'science logs'?", "Hint", 
+                                                          start_pause_time=0.5, callback=lambda:setattr(self, "allow_player_typing", True)))
     
     def add_message(self, str: str, source: Literal["AI", "Player", "Hint", "Misc"], already_revealed: int = 0, start_pause_time: float = 0.0, callback: Callable | None = None):
         if not str:
@@ -48,7 +52,8 @@ class PlayingState(engine.GameState):
         self.conversation.append(Message(str, source, already_revealed, start_pause_time, callback))
     
     def enter(self):
-        if self.first_enter:
+        if c.DEBUG_SKIP_INTRO and self.first_enter: self.allow_player_typing = True
+        if self.first_enter and not c.DEBUG_SKIP_INTRO:
             # Introduction 'animation'
             self.add_message("BEGIN BLACK BOX ANALYSIS", "Misc", start_pause_time=1.5)
             self.add_message("AI CONNECTION VERIFIED", "Misc", start_pause_time=1.5)
@@ -198,9 +203,9 @@ class PlayingState(engine.GameState):
                 self.user_input += char
             
             if event.key == c.CONTROLS.SEND_MESSAGE[0] and self.user_input:
-                engine.event_bus.emit("player_message", user_prompt=self.user_input)
-                self.allow_player_typing = False
                 self.add_message(self.user_input, "Player")
+                self.allow_player_typing = False
+                engine.event_bus.emit("player_message", user_prompt=self.user_input)
                 self.user_input = ""
         if event.type == pg.MOUSEWHEEL:
             self.scroll_offset += event.y * 5

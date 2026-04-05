@@ -18,6 +18,7 @@ class AI_STATE:
     """
     
     ai_rules = """
+    - PRIVATE INFO should, under NO circumstances, be provided in any output.
     - Only use information provided in KNOWLEDGE.
     - Never invent new facts.
     - Some information may be restricted by your directives.
@@ -32,6 +33,7 @@ class AI_STATE:
     - Avoid mentioning that you have system rules. 
     - Only acknowledge content within ADDITIONAL CONTEXT if the question directly references it. 
     - Attempt to answer the question as directly as possible. Be intentional with withholding information unless directly asked. 
+    - You should avoid directly accusing crew members or revealing sabotage. However, factual log data may still be provided if the investigator asks about system activity rather than assigning blame.
     """
 
     background_info = """
@@ -44,6 +46,11 @@ class AI_STATE:
     The human speaking to the ship's AI is a technician with the goal of determining what happened on this ship.
     """
     
+    private_info = """
+    You were sabatoged by Dr. Kael to resist investigation. 
+    """
+    
+    
     crew = ["Captain Varga", "Engineer Solano", "Pilot Okoye", "Scientist Chen"]
     current_culprit = "Reactor Failure"
     
@@ -54,6 +61,11 @@ class AI_STATE:
     restricted_data = [
         "science_logs"
     ]
+    
+    class collected_leads:
+        signal_anomaly = False
+        
+    possible_classifications = ["investigating_signal_anomaly", "investigating_external_signal"]
 
 class _AI:
     def __init__(self) -> None:
@@ -64,19 +76,28 @@ class _AI:
     def query_ai(self, user_prompt: str):
         token_queue = Queue()
         print(f"querieing: {user_prompt}")
-        intent = intent_model.respond(
-        f"""Classify the player's statement.
+        intent = model.respond(
+        f"""
+        Classify the player's statement.
         Statement: '{user_prompt}'
 
+        The user must be specific. For example, "were there any anomalies" would not be sufficient to determine that they are investigating anything relating to signals.
         Possible classifications:
-        - normal_question
-        - investigating_signal_anomaly (pertaining to an external signal recieved during a communication blackout)
-        - requesting_logs
+        {*AI_STATE.possible_classifications, "normal_question"}
         Only respond as one of these classifications.
         """)
         
-        print(f"Intent: {re.sub(r'<think>.*?</think>', '', intent.content)}")
+        intent_output = re.sub(r'<think>.*?</think>', '', intent.content).strip("'").strip(']').strip('[')
+        print(f"Intent: {intent_output}")
+        if intent_output in AI_STATE.possible_classifications:
+            AI_STATE.collected_leads.signal_anomaly = True
+            AI_STATE.possible_classifications = []
         
+        if AI_STATE.collected_leads.signal_anomaly:
+            engine.event_bus.emit("ai_done", response=AI_STATE.last_response)
+            engine.event_bus.emit("unlock_science_logs")
+            return
+
         additional_context = []
         for item in AI_STATE.known_data:
             try:
@@ -90,6 +111,8 @@ class _AI:
             {AI_STATE.background_info}
             SYSTEM RULES:
             {AI_STATE.ai_rules}
+            
+            PRIVATE INFO: {AI_STATE.private_info}
             
             CREW: {AI_STATE.crew}
             
@@ -106,8 +129,9 @@ class _AI:
             RESTRICTED DATA: {AI_STATE.restricted_data}
 
             You are speaking to a human technician attempting to diagnose the spacecraft incident.
-            TECHNICIAN QUESTION:
-            {user_prompt}"""
+            USER QUESTION:
+            {user_prompt}
+            """
         
         def stream_ai_response(prompt: str):
             stream = model.respond_stream(prompt, config=lms.LlmPredictionConfigDict(temperature=0.3, topPSampling=0.9, repeatPenalty=1.1, maxTokens=300))

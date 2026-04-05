@@ -1,10 +1,11 @@
-YYYY.MM.DD.hh.mm:log:name
-2118.01.12.00.00:Mission Start Log:Automated
-2118.01.12.00.42:"Is this working? Looks good. We've arrived in system and the crew is excited to get going on the mission. Will have another report once all maintenance checks are completed.":"Captain Varga"
-2118.01.12.02.15:"Maintenance checks took longer than anticipated. The rest of the crew is on a break right now, but we have a minor issue with the communication equipment. It's rebooting now and we'll follow the checklist to troubleshoot after that.":"Captain Varga"
-2118.01.12.02.18:"Communications is actually down right now. Working on a fix.":"Engineer Solano"
-2118.01.12.03.05: "Communications reboot completed. Signal strength fluctuates intermittently. Will monitor and report any anomalies." : "Engineer Solano"
-2118.01.12.05.40: "Crew morale is good. Initial scans of the target system show no unexpected hazards. Routine engine checks normal." : "Captain Varga"
-2118.01.12.08.22: "Minor power fluctuation detected in sector 3. Diagnostics running, appears isolated." : "Engineer Solano"
-2118.01.12.09.10: "Crew reports unusual sounds near the aft storage bays. Could be structural settling, but investigation recommended." : "Captain Varga"
-2118.01.12.10.47: "Investigated aft storage area. Nothing out of place found, logs updated. Crew reminded to follow standard safety protocols." : "Engineer Solano"
+CREW LOG SUMMARY
+
+Crew activity was routine during the early mission phase. Maintenance checks and system inspections were performed after arrival in the system, including troubleshooting a temporary communications issue which was resolved through a reboot. Crew morale was reported as good and initial scans of the system revealed no immediate hazards.
+
+Minor engineering concerns were recorded during the first day of operations.
+
+Later in the mission timeline, engineering staff began noting irregular behavior within the communications subsystem. Diagnostics were reported as running slower than expected, and repeated handshake attempts were observed on the communications bus without registering as external signals.
+
+During this same period, a crew observation recorded that Dr. Kael from the research team had been attempting to route a signal through the communications test interface for calibration purposes. A separate automated log also recorded that the research team requested temporary access to the communications diagnostics bus.
+
+Shortly before the communications system failure recorded in the performance logs, engineering staff noted that the communications subsystem appeared to be receiving unexplained pings from an unidentified source.

@@ -36,9 +36,9 @@ screen = pygame.display.set_mode(internal_res, pygame.SCALED | pygame.FULLSCREEN
   - [x] User text input box
   - [x] Add user messages to history when press enter or press submit button
   - [x] Message history display
-  - [ ] Scrollable message history
+  - [x] Scrollable message history
 - [x] AI connection (send and recieve messages from LLM)
   - [x] Extend LLM functionality and be able to call things from inside of game logic
   - [x] Rough out LLM prompting strategy
 - [ ] Continue story
-  - [ ] Connect question intent to unlocks throughout the game
+  - [x] Connect question intent to unlocks throughout the game
