@@ -195,6 +195,7 @@ class PlayingState(engine.GameState):
                 engine.state_manager.change_state("pause")
             
         if event.type == pg.KEYDOWN and self.allow_player_typing and not self.endgame_triggered:
+            if event.key in [pg.K_ESCAPE]: return
             char = event.unicode
             if event.key == c.CONTROLS.DEL_WORD_LEFT[0] and event.mod & c.CONTROLS.DEL_WORD_LEFT[1]:
                 if not self.user_input: return
