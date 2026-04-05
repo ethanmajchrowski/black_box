@@ -13,7 +13,9 @@ class Game:
         engine.state_manager.register_state(SettingsMenuState(), "settings")
         engine.state_manager.register_state(MainMenuState(), "main_menu")
         engine.state_manager.register_state(PauseState(), "pause")
-        engine.state_manager.change_state("playing")
+        engine.state_manager.change_state("main_menu")
+        
+        pg.display.set_icon(pg.image.load('assets/graphics/window_icon.png').convert_alpha())
         
         engine.setup(c)
         # variables

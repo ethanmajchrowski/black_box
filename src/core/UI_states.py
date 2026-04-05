@@ -51,13 +51,18 @@ class MainMenuState(engine.GameState):
     def draw(self, surf: pg.Surface):
         surf.fill((0, 0, 0))
         font = engine.font.get_font("inter")
-        font.render_to(surf, (10, 10, 10, 10), "BLACK BOX", (80, 80, 80), (0, 0, 0), size=64)
+        font.render_to(surf, (10, 10, 10, 10), "BLACK BOX", (80, 80, 80), (0, 0, 0), size=128)
         
         surf.blit(self.pygame_surf, (c.DISPLAY_WIDTH - self.pygame_surf.width - 5, c.DISPLAY_HEIGHT - self.pygame_surf.height - 5))
         for button in self.buttons:
             button.draw(surf)
     
     def handle_event(self, event: pg.Event):
+        if event.type == pg.WINDOWRESIZED:
+            display_surf = pg.display.get_surface()
+            if display_surf: 
+                c.update_screen_size(display_surf.width, display_surf.height)
+        
         mods = engine.input_manager.key_mods
         if event.type == pg.QUIT:
             engine.event_bus.emit("quit")
@@ -94,6 +99,11 @@ class PauseState(engine.GameState):
             button.draw(surf)
         
     def handle_event(self, event: pg.Event):
+        if event.type == pg.WINDOWRESIZED:
+            display_surf = pg.display.get_surface()
+            if display_surf: 
+                c.update_screen_size(display_surf.width, display_surf.height)
+        
         mods = engine.input_manager.key_mods
         if event.type == pg.QUIT:
             engine.event_bus.emit("quit")

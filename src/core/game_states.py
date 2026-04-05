@@ -73,6 +73,7 @@ class PlayingState(engine.GameState):
             self.add_message("BEGIN BLACK BOX ANALYSIS", "Misc", start_pause_time=1.5)
             self.add_message("AI CONNECTION VERIFIED", "Misc", start_pause_time=1.5)
             self.add_message("SUBJECT OF INTEREST: ISS Helios Venture", "Misc", start_pause_time=1.5)
+            self.add_message("[ESC] TO PAUSE INVESTIGATION", "Misc", start_pause_time=1.5)
             self.add_message("Okay, we've got the AI all connected. You should be able to start speaking with it once I'm done here.", "Hint", start_pause_time=1.0)
             self.add_message("AI, what are we here to figure out today?", "Hint", start_pause_time=0.5)
             self.add_message("We are here to determine the root cause of the failure of the ISS Helios Venture mission.", "Fake_AI", start_pause_time=1.5)
@@ -108,11 +109,11 @@ class PlayingState(engine.GameState):
                     engine.sound.sounds["typing"].play()
             if visible_chars:
                 bottom = engine.font.draw_wrapped_text(surf, f"> {line.str[:visible_chars]}", "inter", color, text_rect, 18)
-                if bottom > c.DISPLAY_HEIGHT:
+                if bottom + 40 > c.DISPLAY_HEIGHT:
                     self.scroll_offset -= 40
             else:
                 bottom = engine.font.draw_wrapped_text(surf, f"{line.str[:visible_chars]}", "inter", color, text_rect, 18)
-                if bottom > c.DISPLAY_HEIGHT:
+                if bottom + 40 > c.DISPLAY_HEIGHT:
                     self.scroll_offset -= 40
             text_rect.top = bottom
         
@@ -120,7 +121,7 @@ class PlayingState(engine.GameState):
         # AI in progress
         if self.current_ai_line:
             bottom = engine.font.draw_wrapped_text(surf, f"> {self.ai_displayed_line}", "inter", (255, 255, 255), text_rect, 18)           
-            if bottom > c.DISPLAY_HEIGHT:
+            if bottom + 40 > c.DISPLAY_HEIGHT:
                 self.scroll_offset -= 40
         
         if self.allow_player_typing and not self.endgame_triggered:
@@ -186,6 +187,11 @@ class PlayingState(engine.GameState):
                 self.current_ai_line += token
         
     def handle_event(self, event: pg.Event):
+        if event.type == pg.WINDOWRESIZED:
+            display_surf = pg.display.get_surface()
+            if display_surf: 
+                c.update_screen_size(display_surf.width, display_surf.height)
+        
         mods = engine.input_manager.key_mods
         if event.type == pg.QUIT:
             engine.event_bus.emit("quit")
