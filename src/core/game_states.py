@@ -41,9 +41,9 @@ class PlayingState(engine.GameState):
         
         engine.event_bus.connect("ai_start", lambda queue: setattr(self, "ai_token_queue", queue))
         
-        engine.event_bus.connect("unlock_science_logs", 
-                                 lambda: self.add_message("Our team just noticed that a new block of memory opened up in the connection. Try asking about any 'science logs'?", "Hint", 
-                                                          start_pause_time=0.5, callback=lambda:setattr(self, "allow_player_typing", True)))
+        # engine.event_bus.connect("unlock_science_logs", 
+        #                          lambda: self.add_message("Our team just noticed that a new block of memory opened up in the connection. Try asking about any 'science logs'?", "Hint", 
+        #                                                   start_pause_time=0.5, callback=lambda:setattr(self, "allow_player_typing", True)))
     
     def add_message(self, str: str, source: Literal["AI", "Player", "Hint", "Misc"], already_revealed: int = 0, start_pause_time: float = 0.0, callback: Callable | None = None):
         if not str:

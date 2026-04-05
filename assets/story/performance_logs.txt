@@ -1,4 +1,4 @@
-SUMMARY OF SYSTEM PERFORMANCE LOGS
+SUMMARY OF SYSTEM MAINTENANCE LOGS
 
 • All systems nominal until MET 17h23m.
 • Communications system failure occurred at MET 17h23m.
