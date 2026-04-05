@@ -8,9 +8,9 @@ from typing import Literal, Callable
 from random import uniform
 
 class Message:
-    def __init__(self, message: str, source: Literal["AI", "Player", "Hint", "Misc"], already_revealed: int = 0, start_pause_time: float = 0.0, callback: Callable | None = None) -> None:
+    def __init__(self, message: str, source: Literal["AI", "Player", "Hint", "Misc", "Fake_AI"], already_revealed: int = 0, start_pause_time: float = 0.0, callback: Callable | None = None) -> None:
         self.str = message
-        self.source: Literal["AI", "Player", "Hint", "Misc"] = source
+        self.source: Literal["AI", "Player", "Hint", "Misc", "Fake_AI"] = source
         self.total_time = 0.03 * len(message)
         self.start_pause_time = start_pause_time
         
@@ -37,15 +37,30 @@ class PlayingState(engine.GameState):
         self.conversation: list[Message] = []
         self.current_message = 0
         self.user_input = ""
+        self.endgame_triggered = False
         # self.add_message("\nhi"*50, "Hint")
         
         engine.event_bus.connect("ai_start", lambda queue: setattr(self, "ai_token_queue", queue))
-        
+        engine.event_bus.connect("endgame", self.endgame)
         # engine.event_bus.connect("unlock_science_logs", 
         #                          lambda: self.add_message("Our team just noticed that a new block of memory opened up in the connection. Try asking about any 'science logs'?", "Hint", 
         #                                                   start_pause_time=0.5, callback=lambda:setattr(self, "allow_player_typing", True)))
     
-    def add_message(self, str: str, source: Literal["AI", "Player", "Hint", "Misc"], already_revealed: int = 0, start_pause_time: float = 0.0, callback: Callable | None = None):
+    def endgame(self):
+        self.endgame_triggered = True
+        self.allow_player_typing = False
+        def final_messages():
+            self.add_message("Jesus.", "Hint", start_pause_time=2.0)
+            self.add_message("Good..work... We'll get this sent off to the labs for thorough analysis.", "Hint", start_pause_time=2.0)
+            self.add_message("You should probably head home for the day.", "Hint", start_pause_time=3.0)
+            
+            self.add_message("END BLACK BOX ANALYSIS", "Misc", start_pause_time=4.0)
+            self.add_message("AI CONNECTION TERMINATED", "Misc", start_pause_time=1.5)
+            self.add_message("FILE CLOSED: Initial investigation of the ISS Helios Venture", "Misc", start_pause_time=1.5)
+            
+        engine.time_manager.create_timer(2.0, final_messages)
+    
+    def add_message(self, str: str, source: Literal["AI", "Player", "Hint", "Misc", "Fake_AI"], already_revealed: int = 0, start_pause_time: float = 0.0, callback: Callable | None = None):
         if not str:
             logger.warning("Empty string tried to add to message log")
             return
@@ -59,14 +74,11 @@ class PlayingState(engine.GameState):
             self.add_message("AI CONNECTION VERIFIED", "Misc", start_pause_time=1.5)
             self.add_message("SUBJECT OF INTEREST: ISS Helios Venture", "Misc", start_pause_time=1.5)
             self.add_message("Okay, we've got the AI all connected. You should be able to start speaking with it once I'm done here.", "Hint", start_pause_time=1.0)
-            self.add_message("AI, what are we here to figure out today?", "Hint", start_pause_time=0.5, 
-                             callback = lambda: engine.event_bus.emit("player_message", user_prompt="""What are we here to figure out? 
-                                                                      Be Concise as possible! Do not draw on any information from CONTEXT. For this question, simply reply along the lines of 
-                                                                      'We are here to investigate what transpired during the ISS Helios Venture's mission and what caused the mission failure.'"""))
-
-            engine.event_bus.once("ai_done", lambda response: 
-                engine.time_manager.create_timer(2.0, lambda: 
-                    self.add_message("Very good. We should be all right to get started, then. It's all yours.", "Hint", callback=lambda: setattr(self, "allow_player_typing", True))))
+            self.add_message("AI, what are we here to figure out today?", "Hint", start_pause_time=0.5)
+            self.add_message("We are here to determine the root cause of the failure of the ISS Helios Venture mission.", "Fake_AI", start_pause_time=1.5)
+            self.add_message("Very good. We should be all right to get started, then.", "Hint", start_pause_time=1.0)
+            self.add_message("""Before you begin, we've recieved some diagnostics beforehand that the AI is heavily damaged. It's memory banks are faulty, so it won't remember any past messages you send it. At the same time, it's been placed in a strong failsafe mode. That means it won't reveal much information without direct questioning. Keep that in mind during your investigation.""", "Hint", start_pause_time=0.5)
+            self.add_message("Remember: you can type your prompts to the ship AI and press enter to send them in. It's all yours.", "Hint", callback=lambda: setattr(self, "allow_player_typing", True), start_pause_time=2.5)
             
             self.first_enter = False
     
@@ -82,7 +94,7 @@ class PlayingState(engine.GameState):
                 visible_chars = len(line.str)
                 color = (100, 100, 255)
             else: # hint message
-                if line.source == "AI": color = (255, 255, 255)
+                if line.source == "AI" or line.source == "Fake_AI": color = (255, 255, 255)
                 elif line.source == "Misc": color = (97, 97, 97)
                 else: color = (240, 208, 103)
                 # cap chars in line based on line time value
@@ -111,20 +123,25 @@ class PlayingState(engine.GameState):
             if bottom > c.DISPLAY_HEIGHT:
                 self.scroll_offset -= 40
         
+        if self.allow_player_typing and not self.endgame_triggered:
+            pg.draw.rect(surf, (40, 40, 40), (0, c.DISPLAY_HEIGHT - 40, c.DISPLAY_WIDTH, 40))
+        elif not self.endgame_triggered:
+            pg.draw.rect(surf, (20, 20, 20), (0, c.DISPLAY_HEIGHT - 40, c.DISPLAY_WIDTH, 40))
+            
         # draw type box
         font = engine.font.get_font("inter")
         _, align_rect = font.render("|", (0, 0, 0), (0, 0, 0), size=18)
         align_rect.bottomleft = (10, c.DISPLAY_HEIGHT - 10)
-        type_surf, _ = font.render(self.user_input, (255, 255, 255), (0, 0, 0), size=18)
+        type_surf, _ = font.render(self.user_input, (255, 255, 255), (40, 40, 40), size=18)
         
         type_surf_rect = pg.Rect(0, 0, c.DISPLAY_WIDTH - 20, 18)
         type_surf_rect.topleft = (10, c.DISPLAY_HEIGHT - 40)
         surf.blit(type_surf, align_rect)
         
-        if self.allow_player_typing:
+        if self.allow_player_typing and not self.endgame_triggered:
             # cursor icon
             color = (255, 255, 255)
-            if sin(engine.time_manager.global_time * 4) < -0.5: color = (0, 0, 0)
+            if sin(engine.time_manager.global_time * 4) < -0.5: color = (40, 40, 40)
             cursor_rect = pg.Rect(type_surf.width + 15, align_rect.top, 2, align_rect.height)
             cursor_rect.centery = align_rect.centery
             pg.draw.rect(surf, color, cursor_rect)
@@ -177,7 +194,7 @@ class PlayingState(engine.GameState):
             if event.key == c.CONTROLS.PAUSE_GAME[0]:
                 engine.state_manager.change_state("pause")
             
-        if event.type == pg.KEYDOWN and self.allow_player_typing:
+        if event.type == pg.KEYDOWN and self.allow_player_typing and not self.endgame_triggered:
             char = event.unicode
             if event.key == c.CONTROLS.DEL_WORD_LEFT[0] and event.mod & c.CONTROLS.DEL_WORD_LEFT[1]:
                 if not self.user_input: return

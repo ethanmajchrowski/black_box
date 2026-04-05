@@ -1,7 +1,0 @@
-With the following logs, identify if the user is asking for a summary or a specific aspect about the logs. If asking for a summary, ONLY provide data in the summary tag (for example, a vague question like 'what is in the science logs' would be a summary question.). 
-SCIENCE_LOGS = {
-    "summary": "Various research observations noted over the course of the mission. Unidentified signal source collected during communications blackout. Partial decoding succeeded before reactor failure.",
-    "Signal Source": "An unexpected high-energy pulse was detected during MET 17h23m comms blackout. Analysis indicates it originates from neutron star RX J1856.5-3754, not an internal system source.",
-    "Signal Content": "The pulse contains structured data, possibly a naturally occurring pattern of radiation emissions. No human-readable messages detected.",
-    "Reactor Correlation": "Reactor output spiked shortly after the signal’s arrival. Timing implies the signal may have triggered or interacted with reactor systems."
-}

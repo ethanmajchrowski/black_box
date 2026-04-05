@@ -1,7 +1,0 @@
-With the following logs, identify if the user is asking for a summary or a specific aspect about the logs. If asking for a summary, ONLY provide data in the summary tag (for example, a vague question like 'what is in the science logs' would be a summary question.). 
-CREW_MESSAGE_LOGS = {
-    "summary": "Internal crew communications captured over the course of the mission. No actionable intelligence available until deeper investigation is completed.",
-    "Kael Suspicion": "Dr. Kael expresses concern about unexpected readings from the neutron star and questions the integrity of certain system data. Mentions rerouting diagnostic feeds 'for calibration'.",
-    "Engineering Influence": "Kael discusses engineering procedures with Solano in private logs, suggesting minor adjustments to reactor systems. No explicit sabotage is recorded, but timing is suspicious.",
-    "Research Data Obfuscation": "Kael edits science log inputs to mask the true content of signals received during MET 17h23m comms blackout. Only subtle timing discrepancies remain."
-}
