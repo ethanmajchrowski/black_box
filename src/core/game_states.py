@@ -8,9 +8,9 @@ from typing import Literal, Callable
 from random import uniform
 
 class Message:
-    def __init__(self, message: str, source: Literal["AI", "Player", "Hint"], already_revealed: int = 0, start_pause_time: float = 0.0, callback: Callable | None = None) -> None:
+    def __init__(self, message: str, source: Literal["AI", "Player", "Hint", "Misc"], already_revealed: int = 0, start_pause_time: float = 0.0, callback: Callable | None = None) -> None:
         self.str = message
-        self.source: Literal["AI", "Player", "Hint"] = source
+        self.source: Literal["AI", "Player", "Hint", "Misc"] = source
         self.total_time = 0.03 * len(message)
         self.start_pause_time = start_pause_time
         
@@ -31,13 +31,17 @@ class PlayingState(engine.GameState):
         self.ai_char_timer = 0.03     # accumulates time for letter reveal
         self.ai_char_delay = 0.03    # time between letters revealed
         
+        self.scroll_offset = 0
+        self.max_scroll = 0
+        
         self.conversation: list[Message] = []
         self.current_message = 0
         self.user_input = ""
+        # self.add_message("\nhi"*50, "Hint")
         
         engine.event_bus.connect("ai_start", lambda queue: setattr(self, "ai_token_queue", queue))
     
-    def add_message(self, str: str, source: Literal["AI", "Player", "Hint"], already_revealed: int = 0, start_pause_time: float = 0.0, callback: Callable | None = None):
+    def add_message(self, str: str, source: Literal["AI", "Player", "Hint", "Misc"], already_revealed: int = 0, start_pause_time: float = 0.0, callback: Callable | None = None):
         if not str:
             logger.warning("Empty string tried to add to message log")
             return
@@ -46,6 +50,9 @@ class PlayingState(engine.GameState):
     def enter(self):
         if self.first_enter:
             # Introduction 'animation'
+            self.add_message("BEGIN BLACK BOX ANALYSIS", "Misc", start_pause_time=1.5)
+            self.add_message("AI CONNECTION VERIFIED", "Misc", start_pause_time=1.5)
+            self.add_message("SUBJECT OF INTEREST: ISS Helios Venture", "Misc", start_pause_time=1.5)
             self.add_message("Okay, we've got the AI all connected. You should be able to start speaking with it once I'm done here.", "Hint", start_pause_time=1.0)
             self.add_message("AI, what are we here to figure out today?", "Hint", start_pause_time=0.5, 
                              callback = lambda: engine.event_bus.emit("player_message", user_prompt="""What are we here to figure out? 
@@ -62,15 +69,16 @@ class PlayingState(engine.GameState):
         surf.fill((0, 0, 0))
         
         bottom = 0
-        text_rect = pg.Rect(10, 10, c.DISPLAY_WIDTH - 20, c.DISPLAY_HEIGHT - 60)
+        text_rect = pg.Rect(10, 0, c.DISPLAY_WIDTH - 20, c.DISPLAY_HEIGHT - 60)
         text_rect.centerx = c.DISPLAY_WIDTH_CENTER
-        text_rect.top = 10
+        text_rect.top = 10 + self.scroll_offset
         for i, line in enumerate(self.conversation):
             if line.source == "Player":
                 visible_chars = len(line.str)
                 color = (100, 100, 255)
             else: # hint message
                 if line.source == "AI": color = (255, 255, 255)
+                elif line.source == "Misc": color = (97, 97, 97)
                 else: color = (240, 208, 103)
                 # cap chars in line based on line time value
                 progress = 1 - line.current_time / line.total_time
@@ -83,13 +91,20 @@ class PlayingState(engine.GameState):
                     engine.sound.sounds["typing"].play()
             if visible_chars:
                 bottom = engine.font.draw_wrapped_text(surf, f"> {line.str[:visible_chars]}", "inter", color, text_rect, 18)
+                if bottom > c.DISPLAY_HEIGHT:
+                    self.scroll_offset -= 40
             else:
                 bottom = engine.font.draw_wrapped_text(surf, f"{line.str[:visible_chars]}", "inter", color, text_rect, 18)
+                if bottom > c.DISPLAY_HEIGHT:
+                    self.scroll_offset -= 40
             text_rect.top = bottom
         
+        self.max_scroll = bottom - self.scroll_offset
         # AI in progress
         if self.current_ai_line:
             bottom = engine.font.draw_wrapped_text(surf, f"> {self.ai_displayed_line}", "inter", (255, 255, 255), text_rect, 18)           
+            if bottom > c.DISPLAY_HEIGHT:
+                self.scroll_offset -= 40
         
         # draw type box
         font = engine.font.get_font("inter")
@@ -187,3 +202,9 @@ class PlayingState(engine.GameState):
                 self.allow_player_typing = False
                 self.add_message(self.user_input, "Player")
                 self.user_input = ""
+        if event.type == pg.MOUSEWHEEL:
+            self.scroll_offset += event.y * 5
+            self.scroll_offset = min(0, self.scroll_offset)
+            # print(self.scroll_offset, -self.max_scroll)
+            self.scroll_offset = max(self.scroll_offset, -self.max_scroll)
+        

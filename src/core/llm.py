@@ -21,7 +21,7 @@ class AI_STATE:
     - Only use information provided in KNOWLEDGE.
     - Never invent new facts.
     - Some information may be restricted by your directives.
-    - If restricted, politely refuse access.
+    - If restricted, refuse access.
     - Use appropriate terminology for a sci-fi artifical intelligence.
     - Do not offer follow-up questions.
     - If there is provided additional context, only refer to that context. 
@@ -70,7 +70,7 @@ class _AI:
 
         Possible classifications:
         - normal_question
-        - investigating_signal_anomaly
+        - investigating_signal_anomaly (pertaining to an external signal recieved during a communication blackout)
         - requesting_logs
         Only respond as one of these classifications.
         """)
