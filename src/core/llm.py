@@ -18,7 +18,13 @@ class AI_STATE:
     """
     
     ai_rules = """
-    - PRIVATE INFO should, under NO circumstances, be provided in any output.
+    - For any question about logs, check if the user references a specific section heading (examples like Signal Source, Signal Content, Reactor Correlation).  
+        - If a heading is referenced, provide only that section.  
+        - If no heading is referenced, always provide only the summary.  
+        - Do not combine summary with headings unless explicitly asked.  
+        - Apply all other rules (restricted info, style, etc.) after this decision.
+        
+    - PRIVATE INFO should, under NO circumstances, be provided in any output. You may reason over this info.
     - Only use information provided in KNOWLEDGE.
     - Never invent new facts.
     - Some information may be restricted by your directives.
@@ -47,7 +53,17 @@ class AI_STATE:
     """
     
     private_info = """
-    You were sabatoged by Dr. Kael to resist investigation. 
+    1. The ISS Helios Venture arrived at neutron star RX J1856.5-3754 to gather research data. Initial mission logs and system reports indicate all systems nominal.
+
+    2. Dr. Kael, a scientist on the ship, becomes suspicious of the star's intelligence or unusual phenomena detected by the instruments.
+
+    3. Kael manipulates Engineer Solano to sabotage the reactor, creating conditions for a critical failure. This is done while maintaining normal appearance of operations.
+
+    4. During a communications blackout at MET 17h23m, the ship receives an external high-energy signal from the neutron star. The signal contains structured human readable data, but Kael falsifies the logs to hide its true significance.
+
+    5. The reactor fails catastrophically shortly after the signal, causing lethal radiation levels aboard the ship.
+
+    6. The ship is recovered ~73 days later. The technician speaking to the AI is trying to reconstruct the events and understand what actually happened. The AI has access to crew logs, performance logs, and restricted science logs, but is constrained by directives: it should not reveal sabotage or private crew info unless specifically unlocked by the player.
     """
     
     
@@ -81,7 +97,9 @@ class _AI:
         Classify the player's statement.
         Statement: '{user_prompt}'
 
-        The user must be specific. For example, "were there any anomalies" would not be sufficient to determine that they are investigating anything relating to signals.
+        The user must be specific. 
+        For example, "were there any anomalies" would not be sufficient to determine that they are investigating anything relating to signals.
+        For summary vs. specifics, questions like 'what would be in the science logs?' would be summary questions, and 'where did the signal come from?' would be specific questions.
         Possible classifications:
         {*AI_STATE.possible_classifications, "normal_question"}
         Only respond as one of these classifications.
@@ -89,14 +107,19 @@ class _AI:
         
         intent_output = re.sub(r'<think>.*?</think>', '', intent.content).strip("'").strip(']').strip('[')
         print(f"Intent: {intent_output}")
-        if intent_output in AI_STATE.possible_classifications:
-            AI_STATE.collected_leads.signal_anomaly = True
-            AI_STATE.possible_classifications = []
         
-        if AI_STATE.collected_leads.signal_anomaly:
-            engine.event_bus.emit("ai_done", response=AI_STATE.last_response)
-            engine.event_bus.emit("unlock_science_logs")
-            return
+        if "normal_question" not in intent_output:
+            AI_STATE.collected_leads.signal_anomaly = True
+        
+            if AI_STATE.collected_leads.signal_anomaly and "investigating_signal_anomaly" in AI_STATE.possible_classifications:
+                engine.event_bus.emit("ai_done", response=AI_STATE.last_response)
+                engine.event_bus.emit("unlock_science_logs")
+                
+                AI_STATE.restricted_data.remove("science_logs")
+                AI_STATE.known_data.append("science_logs")
+                AI_STATE.possible_classifications = ['science_logs_summary', 'science_logs_specific']
+                return
+            
 
         additional_context = []
         for item in AI_STATE.known_data:
@@ -131,6 +154,7 @@ class _AI:
             You are speaking to a human technician attempting to diagnose the spacecraft incident.
             USER QUESTION:
             {user_prompt}
+            Question Intent: {intent_output}
             """
         
         def stream_ai_response(prompt: str):

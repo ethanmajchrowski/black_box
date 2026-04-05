@@ -8,7 +8,7 @@ def main():
     pg.init()
     pg.mixer.init(buffer=2048, channels=8)
     pg.font.init()
-    display_surface = pg.display.set_mode(c.DISPLAY_SIZE)
+    display_surface = pg.display.set_mode(c.DISPLAY_SIZE, flags=pg.RESIZABLE)
     pg.display.set_caption(c.WINDOW_TITLE)
     logger.info("Pygame initialized")
 
