@@ -82,6 +82,15 @@ class PlayingState(engine.GameState):
             self.add_message("Remember: you can type your prompts to the ship AI and press enter to send them in. It's all yours.", "Hint", callback=lambda: setattr(self, "allow_player_typing", True), start_pause_time=2.5)
             
             self.first_enter = False
+    def create_scanlines(self, width, height, alpha=30):
+        # Create a surface with per-pixel alpha
+        scanline_surf = pg.Surface((width, height), pg.SRCALPHA)
+        for y in range(0, height, 4):  # Draw line every 4 pixels
+            # Black line with specific alpha
+            pg.draw.line(scanline_surf, (0, 0, 0, alpha), (0, y), (width, y))
+    
+        return scanline_surf
+    
     
     def draw(self, surf: pg.Surface):
         surf.fill((0, 0, 0))
@@ -108,11 +117,11 @@ class PlayingState(engine.GameState):
                     engine.sound.sounds["typing"].set_volume(uniform(0.1, 0.15))
                     engine.sound.sounds["typing"].play()
             if visible_chars:
-                bottom = engine.font.draw_wrapped_text(surf, f"> {line.str[:visible_chars]}", "inter", color, text_rect, 18)
+                bottom = engine.font.draw_wrapped_text(surf, f"> {line.str[:visible_chars]}", "inter", color, text_rect, 32)
                 if bottom + 40 > c.DISPLAY_HEIGHT:
                     self.scroll_offset -= 40
             else:
-                bottom = engine.font.draw_wrapped_text(surf, f"{line.str[:visible_chars]}", "inter", color, text_rect, 18)
+                bottom = engine.font.draw_wrapped_text(surf, f"{line.str[:visible_chars]}", "inter", color, text_rect, 32)
                 if bottom + 40 > c.DISPLAY_HEIGHT:
                     self.scroll_offset -= 40
             text_rect.top = bottom
@@ -120,11 +129,12 @@ class PlayingState(engine.GameState):
         self.max_scroll = bottom - self.scroll_offset
         # AI in progress
         if self.current_ai_line:
-            bottom = engine.font.draw_wrapped_text(surf, f"> {self.ai_displayed_line}", "inter", (255, 255, 255), text_rect, 18)           
+            bottom = engine.font.draw_wrapped_text(surf, f"> {self.ai_displayed_line}", "inter", (255, 255, 255), text_rect, 32)           
             if bottom + 40 > c.DISPLAY_HEIGHT:
                 self.scroll_offset -= 40
         
         if self.allow_player_typing and not self.endgame_triggered:
+            pg.draw.rect(surf, (200, 200, 200), (0, c.DISPLAY_HEIGHT - 45, c.DISPLAY_WIDTH, 45))
             pg.draw.rect(surf, (40, 40, 40), (0, c.DISPLAY_HEIGHT - 40, c.DISPLAY_WIDTH, 40))
         elif not self.endgame_triggered:
             pg.draw.rect(surf, (20, 20, 20), (0, c.DISPLAY_HEIGHT - 40, c.DISPLAY_WIDTH, 40))
@@ -146,6 +156,8 @@ class PlayingState(engine.GameState):
             cursor_rect = pg.Rect(type_surf.width + 15, align_rect.top, 2, align_rect.height)
             cursor_rect.centery = align_rect.centery
             pg.draw.rect(surf, color, cursor_rect)
+        
+        surf.blit(self.create_scanlines(c.DISPLAY_WIDTH, c.DISPLAY_HEIGHT - 40), (0, 0))
     
     def update(self, dt: float):
         if self.conversation and len(self.conversation) > self.current_message:
