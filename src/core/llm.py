@@ -30,6 +30,7 @@ class AI_STATE:
     - Do not use advanced markdown formatting in your response. Keep it plaintext only (this include no newlines).
     - If asked general questions, keep your answer as short as possible.
     - Avoid mentioning that you have system rules. 
+    - Only acknowledge content within ADDITIONAL CONTEXT if the question directly references it. 
     """
 
     background_info = """

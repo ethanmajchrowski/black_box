@@ -33,7 +33,6 @@ def setup(configuration):
     animations.asset_manager = asset_manager
     asset_manager.load_assets(configuration.ROOT_ASSET_PATH)
     camera.set_screen_size()
-    state_manager.setup()
 
 def update(dt: float) -> None:
     time_manager.update(dt)

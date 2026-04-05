@@ -4,45 +4,59 @@ import core.configuration as c
 import engine
 from logger import logger
 from math import sin
-from typing import Literal
+from typing import Literal, Callable
 from random import uniform
 
 class Message:
-    def __init__(self, message: str, source: Literal["AI", "Player", "Hint"], already_revealed: int = 0) -> None:
+    def __init__(self, message: str, source: Literal["AI", "Player", "Hint"], already_revealed: int = 0, start_pause_time: float = 0.0, callback: Callable | None = None) -> None:
         self.str = message
         self.source: Literal["AI", "Player", "Hint"] = source
-        
         self.total_time = 0.03 * len(message)
+        self.start_pause_time = start_pause_time
         
         self.current_time = self.total_time * (1 - (already_revealed / len(message)))
+        self.callback = callback
         
         self.last_visible = already_revealed
 
 class PlayingState(engine.GameState):
     def __init__(self) -> None:
         super().__init__()
+        self.allow_player_typing: bool = False
+        self.first_enter: bool = True
+        
         self.ai_token_queue = None
         self.current_ai_line = ""
         self.ai_displayed_line = ""  # what has actually been drawn so far
-        self.ai_char_timer = 0.05     # accumulates time for letter reveal
-        self.ai_char_delay = 0.05    # time between letters revealed
+        self.ai_char_timer = 0.03     # accumulates time for letter reveal
+        self.ai_char_delay = 0.03    # time between letters revealed
         
         self.conversation: list[Message] = []
-        self.add_message("hellow\nnewline", "Player")
-        # self.add_message("* "*40, "AI", 76)
-
+        self.current_message = 0
         self.user_input = ""
         
         engine.event_bus.connect("ai_start", lambda queue: setattr(self, "ai_token_queue", queue))
     
-    def add_message(self, str: str, source: Literal["AI", "Player", "Hint"], already_revealed: int = 0):
+    def add_message(self, str: str, source: Literal["AI", "Player", "Hint"], already_revealed: int = 0, start_pause_time: float = 0.0, callback: Callable | None = None):
         if not str:
             logger.warning("Empty string tried to add to message log")
             return
-        self.conversation.append(Message(str, source, already_revealed))
+        self.conversation.append(Message(str, source, already_revealed, start_pause_time, callback))
     
     def enter(self):
-        pass
+        if self.first_enter:
+            # Introduction 'animation'
+            self.add_message("Okay, we've got the AI all connected. You should be able to start speaking with it once I'm done here.", "Hint", start_pause_time=1.0)
+            self.add_message("AI, what are we here to figure out today?", "Hint", start_pause_time=0.5, 
+                             callback = lambda: engine.event_bus.emit("player_message", user_prompt="""What are we here to figure out? 
+                                                                      Be Concise as possible! Do not draw on any information from CONTEXT. For this question, simply reply along the lines of 
+                                                                      'We are here to investigate what transpired during the ISS Helios Venture's mission and what caused the mission failure.'"""))
+
+            engine.event_bus.once("ai_done", lambda response: 
+                engine.time_manager.create_timer(2.0, lambda: 
+                    self.add_message("Very good. We should be all right to get started, then. It's all yours.", "Hint", callback=lambda: setattr(self, "allow_player_typing", True))))
+            
+            self.first_enter = False
     
     def draw(self, surf: pg.Surface):
         surf.fill((0, 0, 0))
@@ -51,7 +65,7 @@ class PlayingState(engine.GameState):
         text_rect = pg.Rect(10, 10, c.DISPLAY_WIDTH - 20, c.DISPLAY_HEIGHT - 60)
         text_rect.centerx = c.DISPLAY_WIDTH_CENTER
         text_rect.top = 10
-        for line in self.conversation:
+        for i, line in enumerate(self.conversation):
             if line.source == "Player":
                 visible_chars = len(line.str)
                 color = (100, 100, 255)
@@ -67,8 +81,10 @@ class PlayingState(engine.GameState):
                     line.last_visible = visible_chars
                     engine.sound.sounds["typing"].set_volume(uniform(0.1, 0.15))
                     engine.sound.sounds["typing"].play()
-
-            bottom = engine.font.draw_wrapped_text(surf, f"> {line.str[:visible_chars]}", "inter", color, text_rect, 18)
+            if visible_chars:
+                bottom = engine.font.draw_wrapped_text(surf, f"> {line.str[:visible_chars]}", "inter", color, text_rect, 18)
+            else:
+                bottom = engine.font.draw_wrapped_text(surf, f"{line.str[:visible_chars]}", "inter", color, text_rect, 18)
             text_rect.top = bottom
         
         # AI in progress
@@ -85,20 +101,27 @@ class PlayingState(engine.GameState):
         type_surf_rect.topleft = (10, c.DISPLAY_HEIGHT - 40)
         surf.blit(type_surf, align_rect)
         
-        # cursor icon
-        color = (255, 255, 255)
-        if sin(engine.time_manager.global_time * 4) < -0.5: color = (0, 0, 0)
-        cursor_rect = pg.Rect(type_surf.width + 15, align_rect.top, 2, align_rect.height)
-        cursor_rect.centery = align_rect.centery
-        pg.draw.rect(surf, color, cursor_rect)
+        if self.allow_player_typing:
+            # cursor icon
+            color = (255, 255, 255)
+            if sin(engine.time_manager.global_time * 4) < -0.5: color = (0, 0, 0)
+            cursor_rect = pg.Rect(type_surf.width + 15, align_rect.top, 2, align_rect.height)
+            cursor_rect.centery = align_rect.centery
+            pg.draw.rect(surf, color, cursor_rect)
     
     def update(self, dt: float):
-        for line in self.conversation:
+        if self.conversation and len(self.conversation) > self.current_message:
+            line = self.conversation[self.current_message]
             if line.source == "Player":
-                continue
-            if line.current_time > 0: 
-                line.current_time -= dt
-        
+                self.current_message += 1
+            else:
+                if line.start_pause_time >= 0: line.start_pause_time -= dt
+                else:
+                    line.current_time -= dt
+                    if line.current_time < 0:
+                        if line.callback: line.callback()
+                        self.current_message += 1
+                
         if self.current_ai_line:
             self.ai_char_timer -= dt
             if self.ai_char_timer < 0 and len(self.ai_displayed_line) < len(self.current_ai_line):
@@ -116,7 +139,9 @@ class PlayingState(engine.GameState):
         while not self.ai_token_queue.empty():
             token = self.ai_token_queue.get()
             if token is None:
+                # Done with AI
                 engine.event_bus.emit("ai_done", response=self.current_ai_line)
+                self.allow_player_typing = True
                 self.add_message(self.current_ai_line, "AI", len(self.ai_displayed_line))
                 self.current_ai_line = ""
                 self.ai_displayed_line = ""
@@ -132,7 +157,7 @@ class PlayingState(engine.GameState):
             if event.key == c.CONTROLS.PAUSE_GAME[0]:
                 engine.state_manager.change_state("pause")
             
-        if event.type == pg.KEYDOWN:
+        if event.type == pg.KEYDOWN and self.allow_player_typing:
             char = event.unicode
             if event.key == c.CONTROLS.DEL_WORD_LEFT[0] and event.mod & c.CONTROLS.DEL_WORD_LEFT[1]:
                 if not self.user_input: return
@@ -159,5 +184,6 @@ class PlayingState(engine.GameState):
             
             if event.key == c.CONTROLS.SEND_MESSAGE[0] and self.user_input:
                 engine.event_bus.emit("player_message", user_prompt=self.user_input)
+                self.allow_player_typing = False
                 self.add_message(self.user_input, "Player")
                 self.user_input = ""

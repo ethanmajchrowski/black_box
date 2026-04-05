@@ -13,6 +13,8 @@ class Game:
         engine.state_manager.register_state(SettingsMenuState(), "settings")
         engine.state_manager.register_state(MainMenuState(), "main_menu")
         engine.state_manager.register_state(PauseState(), "pause")
+        engine.state_manager.change_state("playing")
+        
         engine.setup(c)
         # variables
         self.running = True

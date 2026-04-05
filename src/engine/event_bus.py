@@ -46,5 +46,6 @@ class _EventBus:
         # create a function that calls the function, then disconnects it from the manager
         def wrapper(*args, **kwargs):
             function(*args, **kwargs)
-            self.disconnect(event, function)
+            self.disconnect(event, wrapper)
         self.connect(event, wrapper)
+        # print(f"connected {function}! \n {self._listeners}")
