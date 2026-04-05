@@ -9,7 +9,7 @@ System prompts (interesting stuff) are in `src/core/llm.py`
 
 # Installation
 I did not package game files (because I'm tired) and you'd still need to download more stuff anyways 🫟.
-*also would not recommend installing this game - the model used for testing is 9 GB! you can adjust the model name in src/core/llm.py on line 71 if you want to use a model you already have or want to try a smaller model.*
+*also would not recommend installing this game - the model used in development is 9 GB! you can adjust the model name in src/core/llm.py on line 71 if you want to use a model you already have or want to try a smaller model.*
 - clone repo
 - `pip install requirements.txt` (make a venv if you want) - game developed in Python 3.14.3 yada yada
 - install LM Studio `https://lmstudio.ai/`
