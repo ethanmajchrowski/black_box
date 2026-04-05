@@ -47,10 +47,6 @@ class MainMenuState(engine.GameState):
         mods = engine.input_manager.key_mods
         if event.type == pg.QUIT:
             engine.event_bus.emit("quit")
-        
-        if event.type == pg.KEYUP:
-            if event.key == c.CONTROLS.PAUSE_GAME[0]:
-                engine.state_manager.change_state("playing")
             
         if event.type == pg.MOUSEBUTTONDOWN:
             mouse_pos = event.pos
