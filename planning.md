@@ -32,11 +32,13 @@ screen = pygame.display.set_mode(internal_res, pygame.SCALED | pygame.FULLSCREEN
 - [x] Engine updates (add game state register so that engine handles all state switching)
 - [x] Setup basic state switching (able to get to the pause menu from in game, able to exit to main menu from pause menu, able to get to settings menu from main menu, etc.)
 - [x] Implement nice fonts with pygame.freetype
-- [ ] Basic user text input and message history display
-  - [ ] User text input box
-  - [ ] Add user messages to history when press enter or press submit button
-  - [ ] Message history display
+- [x] Basic user text input and message history display
+  - [x] User text input box
+  - [x] Add user messages to history when press enter or press submit button
+  - [x] Message history display
   - [ ] Scrollable message history
 - [x] AI connection (send and recieve messages from LLM)
-  - [ ] Extend LLM functionality and be able to call things from inside of game logic
+  - [x] Extend LLM functionality and be able to call things from inside of game logic
   - [x] Rough out LLM prompting strategy
+- [ ] Continue story
+  - [ ] Connect question intent to unlocks throughout the game
